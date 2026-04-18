@@ -1,0 +1,2 @@
+[MOCK TTS OUTPUT]
+I created a new draft goal: 'Review The Release Notes' (ID 6fdccdd9-2f6). It is in the real goal queue now and nothing has executed yet. Current live context: 0 actionable approval item(s) and 0 blocked goal(s).

@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axis Operating System</title>
+    <link rel="stylesheet" href="/static/style.css?v=20260403-axis-chat-return-v1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+
+<body>
+    <div id="dotted-surface" aria-hidden="true"></div>
+    <div id="axis-init-overlay">
+        <div class="init-logo">
+            <div class="axis-dot"></div>
+            <span>Axis</span>
+        </div>
+        <div class="init-status">Starting...</div>
+    </div>
+    <div id="axis-intro" class="axis-intro hidden" aria-hidden="true">
+        <div class="axis-intro__glow"></div>
+        <div class="axis-intro__copy">
+            <p class="axis-intro__eyebrow">Axis Operating System</p>
+            <h1 class="axis-intro__title">Welcome to Axis</h1>
+            <p class="axis-intro__subtitle">Preparing the overview surface.</p>
+        </div>
+    </div>
+    <div id="error-banner" class="banner banner-error hidden"></div>
+
+    <div id="auth-overlay" class="overlay">
+        <div class="auth-card auth-card--login">
+            <div class="brand-lockup brand-lockup--center">
+                <div class="logo-icon" aria-hidden="true"></div>
+                <div>
+                    <p class="eyebrow">Axis Operating System</p>
+                    <h1>Axis</h1>
+                </div>
+            </div>
+
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab active" data-auth-tab="owner">Owner Login</button>
+                <button type="button" class="auth-tab" data-auth-tab="device">Pair This Device</button>
+            </div>
+
+            <div id="auth-section-owner" class="auth-section active">
+                <h2>Enter The Workspace</h2>
+                <p class="auth-copy">Use your owner token to unlock the live Axis shell and its governed control
+                    surfaces.</p>
+
+                <div class="form-group">
+                    <label for="auth-token">Owner Token</label>
+                    <input id="auth-token" type="password" class="form-input" placeholder="Paste owner token">
+                </div>
+
+                <button id="login-btn" class="btn btn-primary btn-block">Enter Axis</button>
+            </div>
+
+            <div id="auth-section-device" class="auth-section hidden">
+                <div id="device-pairing-step">
+                    <h2>Connect to Axis</h2>
+                    <p class="auth-copy">Enter the pairing code shown on your desktop Axis dashboard.</p>
+
+                    <div class="form-group">
+                        <input id="pairing-code-input" type="text" class="form-input pairing-code-input"
+                            placeholder="XXXX-XXXX" maxlength="9">
+                    </div>
+
+                    <button id="pair-connect-btn" class="btn btn-primary btn-block">Connect</button>
+
+                    <p class="auth-note">This device will have limited read access. Permission changes must be made from
+                        the owner's desktop.</p>
+                </div>
+
+                <div id="device-success-step" class="hidden">
+                    <h2 style="color: var(--success);">Connected!</h2>
+                    <p class="auth-copy">Save your access code. This code will only be shown once. Save it before
+                        continuing.</p>
+
+                    <div class="pairing-code-display code-success-display">
+                        <span id="new-device-token"></span>
+                        <button id="copy-device-token-btn" class="btn btn-secondary btn-small"
+                            type="button">Copy</button>
+                    </div>
+
+                    <button id="open-dashboard-btn" class="btn btn-primary btn-block" style="margin-top: 20px;">Open
+                        Axis Dashboard</button>
+                </div>
+            </div>
+
+            <p id="auth-error" class="auth-error hidden"></p>
+        </div>
+    </div>
+
+    <!-- Device Access Revoked Overlay -->
+    <div id="device-revoked-overlay" class="device-revoked-overlay hidden">
+        <div class="revoked-card">
+            <div class="revoked-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round" width="48" height="48">
+                    <rect x="3" y="11" width="18" height="11" rx="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+            </div>
+            <h2>Device Access Revoked</h2>
+            <p>Your access to this Axis system has been revoked or expired. Ask the owner to generate a new pairing
+                code.</p>
+            <div class="revoked-actions">
+                <button id="revoked-pair-again" class="btn btn-primary">Pair Again</button>
+                <button id="revoked-dismiss" class="btn btn-secondary">Dismiss</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" class="hidden">
+        <!-- Mobile Header -->
+        <header class="mobile-header" aria-label="Mobile navigation bar">
+            <button id="sidebar-toggle" class="mobile-header__btn" aria-label="Open navigation menu" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    width="22" height="22">
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
+            <span class="mobile-header__logo">Axis</span>
+            <button id="assistant-fab" class="mobile-header__btn" aria-label="Open assistant" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+                    stroke-linejoin="round" width="22" height="22">
+                    <path d="M7 10.5h10" />
+                    <path d="M7 14h6" />
+                    <path
+                        d="M4.5 7.5A2.5 2.5 0 0 1 7 5h10a2.5 2.5 0 0 1 2.5 2.5v6A2.5 2.5 0 0 1 17 16H11l-4.5 3v-3H7A2.5 2.5 0 0 1 4.5 13.5v-6Z" />
+                </svg>
+            </button>
+        </header>
+
+        <!-- Sidebar Drawer Backdrop -->
+        <div id="drawer-backdrop" class="drawer-backdrop" aria-hidden="true"></div>
+
+        <!-- Mobile Sidebar Drawer -->
+        <aside id="sidebar-drawer" class="sidebar-drawer" aria-label="Navigation drawer">
+            <div class="sidebar-drawer__inner">
+                <button id="drawer-close" class="drawer-close" aria-label="Close menu" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        width="20" height="20">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+                <div class="brand-lockup" style="padding: 8px 4px 16px;">
+                    <div class="logo-icon logo-icon--small" aria-hidden="true"></div>
+                    <div>
+                        <p class="eyebrow">Axis OS</p><strong>Axis</strong>
+                    </div>
+                </div>
+                <nav id="drawer-nav" class="sidebar-nav" aria-label="Drawer navigation"></nav>
+            </div>
+        </aside>
+
+        <!-- Assistant Bottom Sheet -->
+        <div id="assistant-sheet" class="assistant-sheet" aria-label="Assistant panel">
+            <div class="assistant-sheet__handle"></div>
+            <div id="assistant-sheet-content" class="assistant-sheet__content"></div>
+        </div>
+
+        <div class="app-shell">
+            <aside class="sidebar">
+                <div class="sidebar__top">
+                    <div class="brand-lockup">
+                        <div class="logo-icon" aria-hidden="true"></div>
+                        <div>
+                            <p class="eyebrow">Axis Operating System</p>
+                            <h1>Axis</h1>
+                            <span id="version-tag" class="version">v--</span>
+                        </div>
+                    </div>
+
+                    <div class="sidebar__pulse">
+                        <span class="sidebar__pulse-label">Workspace Pulse</span>
+                        <div id="readiness-banner" class="status-pill tone-neutral">Syncing</div>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav" aria-label="Primary">
+                    <div class="nav-group-label">Core Experience</div>
+
+                    <button class="nav-btn active" data-page="overview" type="button">
+                        <span class="nav-btn__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 13.5 12 6l8 7.5"></path>
+                                <path d="M6 11.8V20h12v-8.2"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-btn__label">Axis Overview</span>
+                    </button>
+
+                    <button class="nav-btn" data-page="axis-chat" type="button">
+                        <span class="nav-btn__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M7 10.5h10"></path>
+                                <path d="M7 14h6"></path>
+                                <path
+                                    d="M4.5 7.5A2.5 2.5 0 0 1 7 5h10a2.5 2.5 0 0 1 2.5 2.5v6A2.5 2.5 0 0 1 17 16H11l-4.5 3v-3H7A2.5 2.5 0 0 1 4.5 13.5v-6Z">
+                                </path>
+                            </svg>
+                        </span>
+                        <span class="nav-btn__label">Axis Chat</span>
+                    </button>
+
+                    <button class="nav-btn" data-page="goals" type="button">
+                        <span class="nav-btn__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="8"></circle>
+                                <path d="M12 8v4l3 2"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-btn__label">Goals</span>
+                        <span id="badge-goals" class="nav-badge"></span>
+                    </button>
+
+                    <button class="nav-btn" data-page="approvals" type="button">
+                        <span class="nav-btn__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 12.5 11 14.5 15.5 10"></path>
+                                <path d="M12 3 5 6v6c0 4.2 2.7 7.9 7 9 4.3-1.1 7-4.8 7-9V6l-7-3Z"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-btn__label">Approvals</span>
+                        <span id="badge-approvals" class="nav-badge"></span>
+                    </button>
+
+                    <div class="nav-group-label">Intelligence</div>
+
+                    <button class="nav-btn" data-page="axis-hub" type="button">
+                        <span class="nav-btn__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="3"></circle>
+                                <path
+                                    d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a2 2 0 1 1-4 0v-.2a1 1 0 0 0-.6-.9 1 1 0 0 0-1.1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a2 2 0 1 1 0-4h.2a1 1 0 0 0 .9-.6 1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1 1 0 0 0 1.1.2 1 1 0 0 0 .6-.9V4a2 2 0 1 1 4 0v.2a1 1 0 0 0 .6.9 1 1 0 0 0 1.1-.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1 1 0 0 0-.2 1.1 1 1 0 0 0 .9.6h.2a2 2 0 1 1 0 4h-.2a1 1 0 0 0-.9.6Z">
+                                </path>
+                            </svg>
+                        </span>
+                        <span class="nav-btn__label">Axis Hub</span>
+                    </button>
+
+                    <button class="nav-btn" data-page="guide" type="button">
+                        <span class="nav-btn__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5v0V5.5Z"></path>
+                                <path d="M8 7h8"></path>
+                                <path d="M8 11h8"></path>
+                                <path d="M8 15h5"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-btn__label">Capabilities &amp; Guide</span>
+                    </button>
+
+                    <div class="nav-group-label">Control</div>
+
+                    <button class="nav-btn" data-page="permissions" type="button">
+                        <span class="nav-btn__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="4" y="11" width="16" height="9" rx="2"></rect>
+                                <path d="M8 11V8a4 4 0 1 1 8 0v3"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-btn__label">Permissions &amp; Access</span>
+                        <span id="badge-permissions" class="nav-badge"></span>
+                    </button>
+
+                    <button class="nav-btn" data-page="security" type="button">
+                        <span class="nav-btn__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 3 6 5.8v5.5c0 4.2 2.6 8 6 9.7 3.4-1.7 6-5.5 6-9.7V5.8L12 3Z"></path>
+                                <path d="M9.5 12 11 13.5 14.5 10"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-btn__label">Security &amp; Compliance</span>
+                    </button>
+
+                    <button class="nav-btn" data-page="settings" type="button">
+                        <span class="nav-btn__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"></path>
+                                <path d="M3 12h2.4"></path>
+                                <path d="M18.6 12H21"></path>
+                                <path d="m5.6 5.6 1.7 1.7"></path>
+                                <path d="m16.7 16.7 1.7 1.7"></path>
+                                <path d="M12 3v2.4"></path>
+                                <path d="M12 18.6V21"></path>
+                                <path d="m18.4 5.6-1.7 1.7"></path>
+                                <path d="m7.3 16.7-1.7 1.7"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-btn__label">Settings</span>
+                    </button>
+
+                    <button class="nav-btn" data-page="profiles" type="button">
+                        <span class="nav-btn__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21a8 8 0 0 0-16 0"></path>
+                                <circle cx="12" cy="8" r="4"></circle>
+                            </svg>
+                        </span>
+                        <span class="nav-btn__label">Profiles &amp; Plans</span>
+                    </button>
+
+                    <button class="nav-btn" data-page="pricing" type="button">
+                        <span class="nav-btn__icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m3 8 9-5 9 5-9 5-9-5Z"></path>
+                                <path d="m3 16 9-5 9 5-9 5-9-5Z"></path>
+                            </svg>
+                        </span>
+                        <span class="nav-btn__label">Pricing</span>
+                    </button>
+                </nav>
+
+                <div class="sidebar__footer">
+                    <div id="whoami-info" class="identity-card"></div>
+                    <button id="logout-btn" class="btn btn-secondary btn-block" type="button">Exit Workspace</button>
+                </div>
+            </aside>
+
+            <section class="main-shell">
+                <header class="topbar">
+                    <div class="topbar__title">
+                        <div class="logo-icon logo-icon--small" aria-hidden="true"></div>
+                        <div>
+                            <p class="eyebrow">Axis Operating System</p>
+                            <h2 id="page-title" class="page-title">Axis Overview</h2>
+                            <p id="page-description" class="page-description">A unified view of live system state,
+                                approvals, blockers, and next actions.</p>
+                        </div>
+                    </div>
+
+                    <div class="topbar__meta">
+                        <div class="topbar__signals">
+                            <span id="topbar-remote-access" class="meta-chip meta-chip--muted hidden">Remote
+                                Access</span>
+                            <span id="topbar-model" class="meta-chip">Model: --</span>
+                            <span id="topbar-plan" class="meta-chip">Plan: --</span>
+                        </div>
+
+                        <div class="session-pill">
+                            <div id="session-avatar" class="avatar">A</div>
+                            <div class="session-pill__copy">
+                                <strong id="session-name">Axis Session</strong>
+                                <span id="session-meta">Awaiting identity</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <main class="main-scroll">
+                    <section id="page-overview" class="page"></section>
+                    <section id="page-axis-chat" class="page hidden"></section>
+                    <section id="page-goals" class="page hidden"></section>
+                    <section id="page-approvals" class="page hidden"></section>
+                    <section id="page-axis-hub" class="page hidden"></section>
+                    <section id="page-guide" class="page hidden"></section>
+                    <section id="page-permissions" class="page hidden"></section>
+                    <section id="page-security" class="page hidden"></section>
+                    <section id="page-settings" class="page hidden"></section>
+                    <section id="page-profiles" class="page hidden"></section>
+                    <section id="page-pricing" class="page hidden"></section>
+                </main>
+
+                <footer class="status-bar">
+                    <div id="status-health" class="status-bar__item">Health: --</div>
+                    <div id="status-db" class="status-bar__item">DB: Supabase (PostgreSQL)</div>
+                    <div id="status-model" class="status-bar__item">Model: --</div>
+                    <div id="status-goals" class="status-bar__item">Active goals: --</div>
+                    <div id="status-approvals" class="status-bar__item">Approvals: --</div>
+                    <div id="status-trust" class="status-bar__item">Trust: --</div>
+                </footer>
+            </section>
+
+            <aside class="assistant-shell" aria-hidden="true">
+                <div class="assistant-shell__header">
+                    <div class="assistant-shell__identity">
+                        <div class="assistant-avatar" aria-hidden="true">A</div>
+                        <div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <p class="eyebrow" style="margin: 0;">Axis Assistant</p>
+                                <div id="assistant-model-indicator"
+                                    style="font-size: 0.6em; color: var(--color-foreground-muted); letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;">
+                                </div>
+                            </div>
+                            <h3>Conversational control</h3>
+                        </div>
+                    </div>
+                    <div class="assistant-shell__status">
+                        <span id="assistant-speaking-pill" class="speaking-indicator hidden">
+                            ● Speaking <button id="stop-speaking-btn" title="Stop speaking">■</button>
+                        </span>
+                        <span id="assistant-restore-indicator" class="assistant-restore" aria-live="polite"></span>
+                        <span id="assistant-state" class="status-pill tone-neutral">Idle</span>
+                    </div>
+                </div>
+
+                <div id="assistant-page-chip" class="assistant-context">
+                    Page context will appear here once the shell is live.
+                </div>
+
+                <div id="assistant-shell-handoff" class="assistant-shell-handoff hidden">
+                    <div class="assistant-shell-handoff__pill">Axis Chat Expanded</div>
+                    <p class="assistant-shell-handoff__copy">The full conversation deck is live in the main workspace.
+                        The rail stays visible for context, session state, and quick orientation.</p>
+                    <div class="assistant-shell-handoff__actions">
+                        <button class="btn btn-secondary" data-page="overview" type="button">Back to Overview</button>
+                        <button class="btn btn-primary" data-focus-assistant="What should Axis orchestrate next?"
+                            type="button">Seed a prompt</button>
+                    </div>
+                </div>
+
+                <div id="assistant-shell-surface-slot" class="assistant-shell__surface-slot">
+                    <div id="assistant-surface" class="assistant-surface" data-host="shell">
+                        <div id="assistant-thread" class="assistant-thread"></div>
+
+                        <div id="assistant-typing" class="assistant-typing hidden" aria-live="polite">
+                            <span>Axis is thinking</span>
+                            <div class="typing-dots" aria-hidden="true">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+
+                        <div class="assistant-composer">
+                            <div class="assistant-composer__head">
+                                <div class="assistant-prompt-pill">
+                                    <span class="assistant-prompt-pill__dot" aria-hidden="true"></span>
+                                    <span>Axis Prompt</span>
+                                </div>
+                                <span id="assistant-mode-note" class="assistant-mode-note">Ask, search, or direct the
+                                    next move.</span>
+                            </div>
+
+                            <div class="assistant-composer__input-shell">
+                                <textarea id="assistant-input" class="assistant-input"
+                    placeholder="Ask Axis what to do next..."></textarea>
+                            </div>
+
+                            <div class="assistant-composer__footer">
+                                <div class="assistant-composer__tools">
+                                    <button id="assistant-attach-btn" class="assistant-tool assistant-tool--icon"
+                                        type="button" title="Image attachments are coming soon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path
+                                                d="M21.44 11.05 12 20.5a6 6 0 0 1-8.49-8.49l9.54-9.55a4 4 0 1 1 5.66 5.66L9.16 17.68a2 2 0 0 1-2.83-2.83l8.49-8.48">
+                                            </path>
+                                        </svg>
+                                    </button>
+
+                                    <div class="assistant-mode-group" role="group" aria-label="Assistant modes">
+                                        <button id="assistant-mode-search" class="assistant-tool assistant-tool--mode"
+                                            data-assistant-mode="search" type="button" aria-pressed="false">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                                aria-hidden="true">
+                                                <circle cx="12" cy="12" r="9"></circle>
+                                                <path d="M3.6 9h16.8"></path>
+                                                <path d="M4.8 15h14.4"></path>
+                                                <path d="M12 3a15 15 0 0 1 0 18"></path>
+                                                <path d="M12 3a15 15 0 0 0 0 18"></path>
+                                            </svg>
+                                            <span>Search</span>
+                                        </button>
+
+                                        <button id="assistant-mode-think" class="assistant-tool assistant-tool--mode"
+                                            data-assistant-mode="think" type="button" aria-pressed="false">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                                aria-hidden="true">
+                                                <path
+                                                    d="M9.5 4.5a6.5 6.5 0 0 0-2.5 12.5V19a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-2a6.5 6.5 0 0 0-7.5-12.5Z">
+                                                </path>
+                                                <path d="M9 15h6"></path>
+                                                <path d="M10 18h4"></path>
+                                            </svg>
+                                            <span>Think</span>
+                                        </button>
+
+                                        <button id="assistant-mode-canvas" class="assistant-tool assistant-tool--mode"
+                                            data-assistant-mode="canvas" type="button" aria-pressed="false">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                                aria-hidden="true">
+                                                <path
+                                                    d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5v-11Z">
+                                                </path>
+                                                <path d="M8 8h8"></path>
+                                                <path d="M8 12h8"></path>
+                                                <path d="M8 16h5"></path>
+                                            </svg>
+                                            <span>Canvas</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="assistant-composer__actionbar">
+                                    <span id="assistant-voice-note" class="assistant-note">Checking voice
+                                        support...</span>
+
+                                    <div class="assistant-composer__action-buttons">
+                                        <button id="assistant-voice-btn"
+                                            class="voice-orb assistant-action-btn assistant-action-btn--secondary"
+                                            type="button" title="Voice input not available in this browser">
+                                            <span class="voice-orb__inner">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                                                    aria-hidden="true">
+                                                    <rect x="9" y="4" width="6" height="11" rx="3"></rect>
+                                                    <path d="M6 11a6 6 0 0 0 12 0"></path>
+                                                    <path d="M12 17v3"></path>
+                                                    <path d="M9 20h6"></path>
+                                                </svg>
+                                            </span>
+                                        </button>
+
+                                        <button id="assistant-send-btn"
+                                            class="assistant-action-btn assistant-action-btn--primary" type="button"
+                                            title="Send message">
+                                            <span class="assistant-send-label">Ask Axis</span>
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M12 5v14"></path>
+                                                <path d="m6 11 6-6 6 6"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <div id="new-goal-modal" class="overlay hidden">
+        <div class="auth-card auth-card--modal">
+            <p class="eyebrow">Goal Creation</p>
+            <h2>Create A New Goal</h2>
+            <p class="auth-copy">Define the next objective for Axis. It will enter the governed goal queue without
+                bypassing approvals or trust controls.</p>
+
+            <div class="form-group">
+                <label for="goal-title">Goal Name</label>
+                <input id="goal-title" type="text" class="form-input" placeholder="Example: Launch readiness review">
+            </div>
+
+            <div class="form-group">
+                <label for="goal-objective">Objective</label>
+                <textarea id="goal-objective" class="form-input form-textarea"
+                    placeholder="Describe what Axis should accomplish."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="goal-priority">Priority</label>
+                <select id="goal-priority" class="form-input">
+                    <option value="low">Low</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button id="goal-cancel-btn" class="btn btn-secondary" type="button">Cancel</button>
+                <button id="goal-submit-btn" class="btn btn-primary" type="button">Create Goal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-goal-modal" class="overlay hidden">
+        <div class="auth-card auth-card--modal">
+            <p class="eyebrow">Goal Editing</p>
+            <h2>Update Goal</h2>
+            <p class="auth-copy">Refine the selected goal while keeping the existing approvals, trust checks, and
+                execution history intact.</p>
+
+            <div class="form-group">
+                <label for="edit-goal-title">Goal Name</label>
+                <input id="edit-goal-title" type="text" class="form-input" placeholder="Goal name">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-goal-objective">Objective</label>
+                <textarea id="edit-goal-objective" class="form-input form-textarea"
+                    placeholder="Describe what Axis should accomplish."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="edit-goal-priority">Priority</label>
+                <select id="edit-goal-priority" class="form-input">
+                    <option value="low">Low</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="high">High</option>
+                    <option value="urgent">Urgent</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button id="edit-goal-cancel-btn" class="btn btn-secondary" type="button">Cancel</button>
+                <button id="edit-goal-submit-btn" class="btn btn-primary" type="button">Save Goal</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pricing-coming-soon-modal" class="overlay hidden">
+        <div class="auth-card auth-card--modal pricing-modal">
+            <p class="eyebrow">Axis Pricing</p>
+            <h2 id="pricing-modal-title">Plan coming soon</h2>
+            <p id="pricing-modal-copy" class="auth-copy">You'll be notified when it's available.</p>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" type="button" data-close-pricing-modal="true">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/bg.js?v=20260402-axis-surface-v3"></script>
+    <script src="/static/app.js?v=20260403-axis-chat-return-v1"></script>
+</body>
+
+</html>

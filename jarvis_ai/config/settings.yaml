@@ -1,0 +1,74 @@
+# Jarvis AI Configuration
+security_token: "57d3231eca3d502f22d4e51bcfcb377d0937cc3a67b3ceb3948624d33ffe411a" # Secure token for mobile bridge auth
+
+# LLM Provider Configuration
+llm:
+  provider: "groq" # Default real provider; mock is last-resort in router only
+  model: "llama-3.3-70b-versatile"
+  timeout_seconds: 30
+  max_retries: 3
+  allow_fallback_to_mock: false
+  api_key: "" # Global key or use env (OPENAI_API_KEY / GEMINI_API_KEY)
+
+# System Capabilities
+capabilities:
+  autonomous_mode: true # Safety default
+  allow_file_deletion: true
+  allow_shell_commands: true
+  mobile_enabled: true
+  web_automation:
+    enabled: true  # Safety default
+    max_steps: 30
+    timeout_ms: 60000
+
+# User Preferences
+user:
+  write_policy: "explicit"
+
+google:
+  enabled: true
+  client_file: "credentials.json"
+  token_file: "storage/google_token.json"
+  gmail:
+    allow_modify: false
+    send_enabled: false
+  scopes:
+    - "https://www.googleapis.com/auth/gmail.readonly"
+    - "https://www.googleapis.com/auth/gmail.compose"
+    - "https://www.googleapis.com/auth/calendar.events"
+  voice_enabled: true
+
+# Paths
+paths:
+  storage_dir: "storage/"
+  logs_dir: "logs/"
+
+# Mobile Server Configuration
+# Security defaults — read docs before changing remote_enabled.
+server:
+  bind_host: "127.0.0.1"          # Overridden to 127.0.0.1 when remote_enabled: false
+  port: 8001
+  remote_enabled: false            # MUST be false for local-only use (default & safe)
+  behind_reverse_proxy: false      # Set true ONLY when Caddy/Nginx/CF Tunnel is in front
+  require_https_forwarded_proto: true   # Enforce X-Forwarded-Proto: https when behind proxy
+  trusted_proxy_ips: []            # IPs allowed to set X-Forwarded-For (e.g. ["127.0.0.1"])
+
+# Phase 8: Voice Interface MVP
+# Push-to-talk only. No always-on mic, no wake word, no background listening.
+voice:
+  enabled: true
+  stt_provider: "groq"          # Options: mock | local_whisper (pip install openai-whisper)
+  tts_provider: "pyttsx3"          # Options: mock | pyttsx3 (pip install pyttsx3)
+  max_upload_mb: 10
+  retain_raw_audio: false       # PRIVACY: delete uploaded audio after processing (default off)
+  retain_tts_outputs: true      # Keep generated TTS files for client retrieval
+  allowed_mime_types:
+    - "audio/wav"
+    - "audio/x-wav"
+    - "audio/mpeg"
+    - "audio/mp3"
+    - "audio/mp4"
+    - "audio/ogg"
+    - "audio/webm"
+    - "audio/x-m4a"
+    - "audio/m4a"

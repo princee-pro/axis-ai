@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jarvis AI Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .pulse-active {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .goal-chain-arrow {
+            border-left: 2px solid #6366f1;
+            border-bottom: 2px solid #6366f1;
+            width: 30px;
+            height: 20px;
+            margin-left: 20px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+            <h1 class="text-3xl font-bold">🤖 Jarvis AI Dashboard</h1>
+            <p class="text-indigo-200 mt-1">Real-time goal tracking & autonomous execution monitoring</p>
+        </div>
+        <div class="mt-4 md:mt-0 flex items-center space-x-3 bg-white/10 p-3 rounded-lg border border-white/20">
+            <span class="text-xs font-bold uppercase text-white/70">Human Override</span>
+            <button id="overrideToggle" onclick="toggleOverride()"
+                class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-gray-600 focus:outline-none">
+                <span id="overrideCircle"
+                    class="translate-x-0 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+            </button>
+            <span id="overrideStatusText" class="text-[10px] font-mono text-gray-400">OFF</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Left Column: Goals & Status -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Autonomous Loop Status Card -->
+                <div id="autonomousStatus" class="bg-gray-800 rounded-lg shadow-xl p-6 border-2 border-gray-700">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div id="autonomousIndicator" class="w-4 h-4 rounded-full bg-gray-500"></div>
+                            <h2 class="text-xl font-semibold">Autonomous Loop</h2>
+                        </div>
+                        <span id="autonomousText" class="text-sm font-medium text-gray-400">LOADING...</span>
+                    </div>
+                </div>
+
+                <!-- NEW: Strategic System Health -->
+                <div class="bg-gray-800 rounded-lg shadow-xl p-6 border-2 border-indigo-500/30">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-2xl font-bold text-indigo-400">🛡️ Strategic Optimization</h2>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm text-gray-400">System Health:</span>
+                            <span id="healthIndex" class="text-2xl font-black text-green-400">100%</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <div class="text-center p-2 bg-gray-900 rounded border border-gray-700">
+                            <div class="text-[10px] text-gray-500 uppercase">Priority (Wp)</div>
+                            <div id="w_priority" class="text-lg font-bold text-indigo-300">2.0</div>
+                        </div>
+                        <div class="text-center p-2 bg-gray-900 rounded border border-gray-700">
+                            <div class="text-[10px] text-gray-500 uppercase">Urgency (Wu)</div>
+                            <div id="w_urgency" class="text-lg font-bold text-indigo-300">1.0</div>
+                        </div>
+                        <div class="text-center p-2 bg-gray-900 rounded border border-gray-700">
+                            <div class="text-[10px] text-gray-500 uppercase">Dependency (Wd)</div>
+                            <div id="w_dependency" class="text-lg font-bold text-indigo-300">1.0</div>
+                        </div>
+                        <div class="text-center p-2 bg-gray-900 rounded border border-gray-700">
+                            <div class="text-[10px] text-gray-500 uppercase">Failure (Wf)</div>
+                            <div id="w_failure" class="text-lg font-bold text-red-400">1.0</div>
+                        </div>
+                        <div class="text-center p-2 bg-gray-900 rounded border border-gray-700">
+                            <div class="text-[10px] text-gray-500 uppercase">Max Retries</div>
+                            <div id="w_retries" class="text-lg font-bold text-gray-300">5</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Goals Section -->
+                <div class="bg-gray-800 rounded-lg shadow-xl p-6 border-2 border-gray-700">
+                    <h2 class="text-2xl font-bold mb-4 text-indigo-400">Active Goals</h2>
+                    <div id="goalsContainer" class="space-y-4">
+                        <p class="text-gray-400">Loading goals...</p>
+                    </div>
+                </div>
+
+                <!-- NEW: Meta-Goals Section -->
+                <div class="bg-gray-800 rounded-lg shadow-xl p-6 border-2 border-purple-500/30">
+                    <h2 class="text-2xl font-bold mb-4 text-purple-400">🛠️ System Improvement (Meta-Goals)</h2>
+                    <div id="metaGoalsContainer" class="space-y-4">
+                        <p class="text-gray-400 text-sm italic">No system improvements pending.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Pilot Performance Metrics -->
+            <div class="bg-gray-800 rounded-lg shadow-xl p-6 border-2 border-blue-500/30">
+                <h2 class="text-2xl font-bold text-blue-400 mb-4">📊 Pilot Metrics</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-3 bg-gray-900 rounded border border-gray-700">
+                        <div class="text-[9px] text-gray-500 uppercase">Mean Time to Completion</div>
+                        <div id="metricMTTC" class="text-xl font-bold text-blue-300">0s</div>
+                    </div>
+                    <div class="p-3 bg-gray-900 rounded border border-gray-700">
+                        <div class="text-[9px] text-gray-500 uppercase">Deadline Adherence</div>
+                        <div id="metricDeadline" class="text-xl font-bold text-green-400">0%</div>
+                    </div>
+                    <div class="p-3 bg-gray-900 rounded border border-gray-700">
+                        <div class="text-[9px] text-gray-500 uppercase">Retry Rate</div>
+                        <div id="metricRetry" class="text-xl font-bold text-orange-400">0%</div>
+                    </div>
+                    <div class="p-3 bg-gray-900 rounded border border-gray-700">
+                        <div class="text-[9px] text-gray-500 uppercase">Automation Adoption</div>
+                        <div id="metricAdoption" class="text-xl font-bold text-purple-400">0%</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Logs -->
+        <div class="space-y-6">
+            <div class="bg-gray-800 rounded-lg shadow-xl p-6 border-2 border-gray-700">
+                <h2 class="text-2xl font-bold mb-4 text-indigo-400">Recent Logs</h2>
+                <div id="logsContainer" class="space-y-2 max-h-96 overflow-y-auto">
+                    <p class="text-gray-400 text-sm">Loading logs...</p>
+                </div>
+            </div>
+
+            <!-- Suggestions Card -->
+            <div class="bg-gray-100/10 rounded-lg shadow-xl p-6 border-2 border-indigo-500/50">
+                <div class="flex items-center space-x-2 mb-3">
+                    <span class="text-2xl">💡</span>
+                    <h3 class="text-lg font-semibold text-indigo-300">Automation Suggestions</h3>
+                </div>
+                <div id="suggestionsContainer" class="space-y-3">
+                    <p class="text-xs text-gray-500 italic">No recurring patterns detected yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Decision Trace Modal -->
+    <div id="traceModal"
+        class="hidden fixed inset-0 z-50 overflow-auto bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-xl shadow-2xl border-2 border-indigo-500 w-full max-w-2xl overflow-hidden">
+            <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-indigo-400">🔍 Decision Trace</h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div id="traceContent" class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-mono text-sm leading-relaxed">
+                <!-- Trace data -->
+            </div>
+            <div class="p-4 bg-gray-900 border-t border-gray-700 text-right">
+                <button onclick="closeModal()"
+                    class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg font-bold text-sm transition-colors">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/status';
+        let updateInterval;
+
+        // Priority labels and colors
+        const PRIORITY_CONFIG = {
+            3: { label: 'CRITICAL', color: 'bg-red-500', text: 'text-red-100' },
+            2: { label: 'HIGH', color: 'bg-orange-500', text: 'text-orange-100' },
+            1: { label: 'NORMAL', color: 'bg-green-500', text: 'text-green-100' }
+        };
+
+        // Fetch and update dashboard
+        async function updateDashboard() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+
+                updateAutonomousStatus(data.autonomous_loop_active);
+                updateGoals(data.active_goals || []);
+                updateLogs(data.recent_logs || []);
+                updateStats(data.active_goals || []);
+
+                // Update Analytics, Strategic, Governance
+                updateAnalytics();
+                updateStrategic();
+                updateGovernance();
+
+                document.getElementById('statsLastUpdate').textContent = new Date().toLocaleTimeString();
+            } catch (error) {
+                console.error('Dashboard update failed:', error);
+                document.getElementById('goalsContainer').innerHTML =
+                    '<p class="text-red-400">⚠️ Error connecting to Jarvis server. Is it running on port 8000?</p>';
+            }
+        }
+
+        async function updateAnalytics() {
+            try {
+                const response = await fetch('http://localhost:8000/analytics');
+                const data = await response.json();
+
+                document.getElementById('successRate').textContent = `${data.overall_success_rate || 0}%`;
+                document.getElementById('totalGoals').textContent = data.total_goals || 0;
+                document.getElementById('avgDuration').textContent = `${data.avg_duration || 0}s`;
+
+                // Tag Stats
+                const tagBox = document.getElementById('tagStatsContainer');
+                if (data.tag_stats && data.tag_stats.length > 0) {
+                    tagBox.innerHTML = data.tag_stats.map(s => `
+                        <div class="flex items-center justify-between text-xs bg-gray-900 p-2 rounded">
+                            <span class="font-mono text-indigo-300">#${s.tag}</span>
+                            <div class="flex items-center space-x-4">
+                                <span class="text-gray-500">${s.total} runs</span>
+                                <span class="${s.success_rate < 70 ? 'text-red-400 font-bold' : 'text-green-400'}">${s.success_rate}% success</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    tagBox.innerHTML = '<p class="text-xs text-gray-600">No tag data recorded.</p>';
+                }
+
+                // Suggestions
+                const sugBox = document.getElementById('suggestionsContainer');
+                if (data.repeated_patterns && data.repeated_patterns.length > 0) {
+                    sugBox.innerHTML = data.repeated_patterns.map(p => `
+                        <div class="bg-indigo-900/30 p-2 rounded border border-indigo-500/30 text-xs">
+                            <span class="text-indigo-200">Recurring Pattern: </span>
+                            <span class="text-white">"${p.description}"</span>
+                            <div class="mt-1 text-indigo-400 font-bold">Recommended for automation.</div>
+                        </div>
+                    `).join('');
+                } else {
+                    sugBox.innerHTML = '<p class="text-xs text-gray-500 italic">Listening for repeated patterns...</p>';
+                }
+
+            } catch (e) { console.error("Analytics fetch failed", e); }
+        }
+
+        async function updateStrategic() {
+            try {
+                const hRes = await fetch('http://localhost:8000/strategic/health');
+                const hData = await hRes.json();
+                const healthEl = document.getElementById('healthIndex');
+                healthEl.textContent = `${hData.health}%`;
+                healthEl.className = hData.health > 80 ? 'text-2xl font-black text-green-400' :
+                    hData.health > 50 ? 'text-2xl font-black text-yellow-400' : 'text-2xl font-black text-red-500';
+
+                const wRes = await fetch('http://localhost:8000/strategic/weights');
+                const wData = await wRes.json();
+                document.getElementById('w_priority').textContent = wData.wp;
+                document.getElementById('w_urgency').textContent = wData.wu;
+                document.getElementById('w_dependency').textContent = wData.wd;
+                document.getElementById('w_failure').textContent = wData.wf;
+                document.getElementById('w_retries').textContent = wData.retry_threshold;
+            } catch (e) { console.error("Strategic fetch failed", e); }
+        }
+
+        async function updateGovernance() {
+            try {
+                const res = await fetch('http://localhost:8000/governance/status');
+                const data = await res.json();
+
+                // Risk Index
+                const riskEl = document.getElementById('riskIndex');
+                riskEl.textContent = data.risk_index;
+                riskEl.className = data.risk_index > 85 ? 'text-2xl font-black text-red-500' :
+                    data.risk_index > 60 ? 'text-2xl font-black text-orange-400' : 'text-2xl font-black text-green-400';
+
+                // Pressure
+                const pressure = Math.min(100, Math.round(data.resource_pressure * 100));
+                document.getElementById('pressureValue').textContent = `${pressure}%`;
+                document.getElementById('pressureBar').style.width = `${pressure}%`;
+                document.getElementById('pressureBar').className = `h-full transition-all duration-500 ${pressure > 80 ? 'bg-red-500' : pressure > 50 ? 'bg-orange-400' : 'bg-indigo-500'}`;
+
+                // Conflicts
+                const confContainer = document.getElementById('conflictsContainer');
+                const confSection = document.getElementById('conflictsSection');
+                if (data.conflicts && data.conflicts.length > 0) {
+                    confSection.classList.remove('hidden');
+                    confContainer.innerHTML = data.conflicts.map(c => `
+                        <div class="text-[10px] bg-red-900/20 border border-red-500/30 p-2 rounded text-red-200">
+                            <span class="font-bold">CONFLICT:</span> ${c.type} (Goal #${c.with_id})
+                            ${c.resource ? ` - Resource: <span class="text-white">${c.resource}</span>` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    confSection.classList.add('hidden');
+                }
+            } catch (e) { console.error("Governance fetch failed", e); }
+        }
+
+        // Update autonomous loop status
+        function updateAutonomousStatus(isActive) {
+            const indicator = document.getElementById('autonomousIndicator');
+            const text = document.getElementById('autonomousText');
+
+            if (isActive) {
+                indicator.className = 'w-4 h-4 rounded-full bg-green-500 pulse-active';
+                text.textContent = 'ACTIVE';
+                text.className = 'text-sm font-medium text-green-400';
+            } else {
+                indicator.className = 'w-4 h-4 rounded-full bg-gray-500';
+                text.textContent = 'INACTIVE';
+                text.className = 'text-sm font-medium text-gray-400';
+            }
+        }
+
+        // Update goals display
+        function updateGoals(goals) {
+            const container = document.getElementById('goalsContainer');
+            const metaContainer = document.getElementById('metaGoalsContainer');
+
+            const metaGoals = goals.filter(g => (g.tags || []).includes('system_improvement'));
+            const userGoals = goals.filter(g => !(g.tags || []).includes('system_improvement'));
+
+            if (userGoals.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-sm italic">No active user goals.</p>';
+            } else {
+                container.innerHTML = renderGoalList(userGoals);
+            }
+
+            if (metaGoals.length === 0) {
+                metaContainer.innerHTML = '<p class="text-gray-400 text-xs italic">No system improvements pending.</p>';
+            } else {
+                metaContainer.innerHTML = renderGoalList(metaGoals);
+            }
+        }
+
+        function renderGoalList(goals) {
+            return goals.map((goal, index) => {
+                const priority = PRIORITY_CONFIG[goal.priority] || PRIORITY_CONFIG[1];
+
+                // Format deadline
+                let deadlineInfo = '<span class="text-gray-500">No deadline</span>';
+                if (goal.deadline) {
+                    const d = new Date(goal.deadline);
+                    const now = new Date();
+                    const diff = d - now;
+                    const hours = Math.round(diff / 3600000);
+                    const isOverdue = diff < 0;
+                    deadlineInfo = `<span class="${isOverdue ? 'text-red-400 font-bold' : 'text-indigo-300'}">
+                        ⏰ ${isOverdue ? 'OVERDUE' : 'Due'}: ${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} 
+                        (${isOverdue ? '' : 'in '}${Math.abs(hours)}h)
+                    </span>`;
+                }
+
+                // Format Dependencies
+                const deps = goal.dependencies && goal.dependencies.length > 0
+                    ? `<div class="text-xs text-gray-400 mt-1">⛓️ Depends on: ${goal.dependencies.join(', ')}</div>`
+                    : '';
+
+                // Format Retry info
+                const retryInfo = goal.retry_count > 0
+                    ? `<span class="ml-2 px-1.5 py-0.5 bg-red-900/50 text-red-300 text-[10px] rounded border border-red-700">🔄 Retries: ${goal.retry_count}</span>`
+                    : '';
+
+                return `
+                    <div class="bg-gray-700/50 rounded-lg p-4 border-l-4 ${priority.color.replace('bg-', 'border-')} backdrop-blur-sm" data-goal-id="${goal.id}">
+                        <!-- Goal Header -->
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-2 mb-1">
+                                    <span class="text-xs font-bold text-gray-400">#${goal.id}</span>
+                                    <span class="px-2 py-0.5 text-xs font-bold rounded ${priority.color} ${priority.text}">
+                                        ${priority.label}
+                                    </span>
+                                    <span class="px-2 py-0.5 text-xs font-medium rounded ${goal.status === 'completed' ? 'bg-green-600/50 text-green-200' : 'bg-yellow-600/50 text-yellow-200'}">
+                                        ${goal.status.toUpperCase()}
+                                    </span>
+                                    ${retryInfo}
+                                </div>
+                                <h3 class="text-lg font-semibold text-white mb-1">${goal.description}</h3>
+                                 <div class="flex flex-col">
+                                    ${deadlineInfo}
+                                    ${deps}
+                                    <div class="flex flex-wrap gap-1 mt-1">
+                                        ${(goal.tags || []).map(t => `<span class="bg-gray-900 text-indigo-400 text-[9px] px-1 rounded">#${t}</span>`).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-indigo-400">${goal.progress}%</div>
+                                <div class="text-[9px] text-gray-500 font-mono">BASE: ${goal.base_score || 0}</div>
+                                <div class="text-[9px] text-purple-400 font-mono">ADJ: ${goal.learning_adjustment || 0}</div>
+                                <div class="text-[9px] text-red-400 font-mono">COH: x${goal.coherence_modifier || 1.0}</div>
+                                <div class="text-sm font-black text-indigo-400 font-mono">SCORE: ${goal.score || 0}</div>
+                                <button onclick="showTrace(${goal.id})" class="mt-2 px-2 py-1 bg-gray-600 hover:bg-indigo-600 text-[10px] rounded text-white transition-colors">🔍 View Trace</button>
+                            </div>
+                        </div>
+
+                        <!-- Governance Warnings -->
+                        ${goal.conflicts && goal.conflicts.length > 0 ? `
+                            <div class="mt-2 p-2 bg-red-900/20 border border-red-500/30 rounded text-[10px] text-red-300">
+                                <span class="font-bold">⚠️ GOVERNANCE WARNING:</span> Pending conflict with active goals.
+                            </div>
+                        ` : ''}
+                        ${goal.coherence_modifier < 0.5 ? `
+                             <div class="mt-2 p-2 bg-orange-900/20 border border-orange-500/30 rounded text-[10px] text-orange-300">
+                                <span class="font-bold">⚖️ COHERENCE ADVISORY:</span> Goal suppressed due to redundancy or low system alignment.
+                            </div>
+                        ` : ''}
+
+                        <!-- Progress Bar -->
+                        <div class="mb-3">
+                            <div class="w-full bg-gray-600/50 rounded-full h-2 overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500" 
+                                     style="width: ${goal.progress}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Steps -->
+                        ${goal.steps && goal.steps.length > 0 ? `
+                            <div class="space-y-1 mb-1 mt-3">
+                                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Execution Steps</p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+                                    ${goal.steps.map((step, i) => {
+                    const stepObj = typeof step === 'string' ? { action: step, status: 'pending' } : step;
+                    const status = stepObj.status || 'pending';
+                    const icon = status === 'completed' ? '✅' :
+                        status === 'running' ? '⚡' :
+                            status === 'skipped' ? '⏭️' :
+                                status === 'failed' ? '❌' : '⚪';
+                    return `
+                                            <div class="flex items-center space-x-2 text-xs py-0.5">
+                                                <span>${icon}</span>
+                                                <span class="${status === 'completed' ? 'text-gray-500 line-through' : status === 'running' ? 'text-indigo-300 font-bold' : 'text-gray-300'}">
+                                                    ${stepObj.action || step}
+                                                </span>
+                                            </div>
+                                        `;
+                }).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+            }).join('');
+        }
+
+        // Update logs display
+        function updateLogs(logs) {
+            const container = document.getElementById('logsContainer');
+
+            if (logs.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-sm">No logs available</p>';
+                return;
+            }
+
+            // Show last 10 logs
+            const recentLogs = logs.slice(-10).reverse();
+            container.innerHTML = recentLogs.map(log => {
+                // Parse log format: [timestamp] [level] [Goal:X] message
+                const goalMatch = log.match(/\[Goal:(\d+)\]/);
+                const levelMatch = log.match(/\[(INFO|WARNING|ERROR)\]/);
+                const level = levelMatch ? levelMatch[1] : 'INFO';
+                const levelColor = level === 'ERROR' ? 'text-red-400' :
+                    level === 'WARNING' ? 'text-yellow-400' : 'text-blue-400';
+
+                return `
+                    <div class="text-xs py-1 border-b border-gray-700">
+                        <span class="${levelColor} font-semibold">[${level}]</span>
+                        ${goalMatch ? `<span class="text-indigo-400">[Goal:${goalMatch[1]}]</span>` : ''}
+                        <span class="text-gray-300">${log.substring(log.indexOf(']', log.indexOf(']') + 1) + 2)}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update statistics
+        function updateStats(goals) {
+            const total = goals.length;
+            const completed = goals.filter(g => g.status === 'completed').length;
+            const pending = goals.filter(g => g.status === 'pending').length;
+
+            updatePilot();
+        }
+
+        async function updatePilot() {
+            try {
+                const res = await fetch('http://localhost:8000/pilot/metrics');
+                const data = await res.json();
+                document.getElementById('metricMTTC').textContent = `${data.mttc}s`;
+                document.getElementById('metricDeadline').textContent = `${data.deadline_adherence}%`;
+                document.getElementById('metricRetry').textContent = `${data.retry_rate}%`;
+                document.getElementById('metricAdoption').textContent = `${data.adoption_rate}%`;
+            } catch (e) { console.error("Pilot fetch failed", e); }
+        }
+
+        async function toggleOverride() {
+            try {
+                const res = await fetch('http://localhost:8000/pilot/override', {
+                    method: 'POST',
+                    body: JSON.stringify({ token: "jarvis_secret_123" })
+                });
+                const data = await res.json();
+                updateOverrideBtn(data.human_override_mode);
+            } catch (e) { console.error("Override toggle failed", e); }
+        }
+
+        function updateOverrideBtn(isActive) {
+            const btn = document.getElementById('overrideToggle');
+            const circle = document.getElementById('overrideCircle');
+            const text = document.getElementById('overrideStatusText');
+            if (isActive) {
+                btn.classList.add('bg-indigo-600');
+                btn.classList.remove('bg-gray-600');
+                circle.classList.add('translate-x-5');
+                circle.classList.remove('translate-x-0');
+                text.textContent = 'ON';
+                text.classList.add('text-indigo-400');
+                text.classList.remove('text-gray-400');
+            } else {
+                btn.classList.remove('bg-indigo-600');
+                btn.classList.add('bg-gray-600');
+                circle.classList.remove('translate-x-5');
+                circle.classList.add('translate-x-0');
+                text.textContent = 'OFF';
+                text.classList.remove('text-indigo-400');
+                text.classList.add('text-gray-400');
+            }
+        }
+
+        async function showTrace(goalId) {
+            try {
+                const res = await fetch(`http://localhost:8000/pilot/trace/${goalId}`);
+                const data = await res.json();
+                const container = document.getElementById('traceContent');
+                document.getElementById('traceModal').classList.remove('hidden');
+
+                if (data.error) {
+                    container.innerHTML = `<div class="text-red-400">${data.error}</div>`;
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex justify-between border-b border-gray-700 pb-1">
+                            <span class="text-gray-500">Base Score</span>
+                            <span class="text-indigo-300">${data.BaseScore}</span>
+                        </div>
+                        <div class="pl-4 space-y-1">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600 italic">Priority Component</span>
+                                <span>${data.Components.Priority}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600 italic">Urgency Component</span>
+                                <span>${data.Components.Urgency}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600 italic">Pressure Component</span>
+                                <span>${data.Components.Pressure}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600 italic">Failure Penalty</span>
+                                <span class="text-red-400">-${data.Components.Penalty}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between border-t border-gray-700 pt-1">
+                            <span class="text-gray-500">Learning Adjustment</span>
+                            <span class="${data.LearningAdjustment >= 0 ? 'text-green-400' : 'text-red-400'}">${data.LearningAdjustment}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Coherence Modifier</span>
+                            <span class="text-purple-400">x${data.CoherenceModifier}</span>
+                        </div>
+                        <div class="flex justify-between text-lg font-bold border-t border-gray-600 pt-2">
+                            <span class="text-white">Final Executable Score</span>
+                            <span class="text-indigo-400">${data.FinalScore}</span>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-800 text-[10px] text-gray-600">
+                            Audit ID: ${goalId} | Risk: ${data.RiskIndex} | Agentic Logic: SM-Pilot-v1
+                        </div>
+                    </div>
+                `;
+            } catch (e) {
+                console.error("Trace fetch failed", e);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('traceModal').classList.add('hidden');
+        }
+
+        // Add initialization for Override Button
+        async function initOverride() {
+            try {
+                const res = await fetch('http://localhost:8000/strategic/weights');
+                const data = await res.json();
+                updateOverrideBtn(data.human_override_mode);
+            } catch (e) { }
+        }
+
+        // Start auto-refresh
+        function startAutoRefresh(intervalMs = 3000) {
+            initOverride();
+            updateDashboard(); // Initial update
+            updateInterval = setInterval(updateDashboard, intervalMs);
+        }
+
+        // Initialize dashboard
+        window.addEventListener('DOMContentLoaded', () => {
+            startAutoRefresh(3000); // Update every 3 seconds
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) clearInterval(updateInterval);
+        });
+    </script>
+</body>
+
+</html>

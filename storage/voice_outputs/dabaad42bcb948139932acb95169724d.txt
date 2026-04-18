@@ -1,0 +1,2 @@
+[MOCK TTS OUTPUT]
+I could not confidently route 'give me the summary of report Brooke' to a specific safe dashboard command. Live state right now: 3 active goal(s), 1 actionable approval item(s), 7 blocked item(s), and 2 recent result artifact(s). Best next action from the current system state: Approve pending web.plan.execute action (cfcb6d5f). You can ask me to summarize approvals, blocked goals, system status, recent changes, results, or create a goal.

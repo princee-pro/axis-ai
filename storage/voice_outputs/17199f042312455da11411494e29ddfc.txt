@@ -1,0 +1,2 @@
+[MOCK TTS OUTPUT]
+Goal management is currently disabled. Goal creation depends on goal management being enabled. Open Permissions & Access to review it.

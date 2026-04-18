@@ -1,0 +1,39 @@
+{
+  "session_id": "6fd45752",
+  "start_time": "2026-03-07T13:10:25.251166",
+  "steps_executed": [
+    {
+      "action": "goto",
+      "url": "http://127.0.0.1:8080"
+    },
+    {
+      "action": "extract",
+      "selector": "#title",
+      "name": "page_title"
+    },
+    {
+      "action": "extract",
+      "selector": "#content",
+      "name": "page_content"
+    },
+    {
+      "action": "extract",
+      "selector": ".price",
+      "name": "product_price"
+    },
+    {
+      "action": "screenshot",
+      "name": "test_page"
+    }
+  ],
+  "extracted_data": {
+    "page_title": "Hello Jarvis",
+    "page_content": "Contact us at [REDACTED_EMAIL] or use token Bearer [REDACTED_TOKEN]",
+    "product_price": "$99.99"
+  },
+  "screenshots": [
+    "storage\\web_sessions\\6fd45752\\test_page.png"
+  ],
+  "status": "success",
+  "end_time": "2026-03-07T13:10:54.094254"
+}

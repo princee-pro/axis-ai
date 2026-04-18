@@ -1,0 +1,12 @@
+{
+  "session_id": "01cb427a",
+  "start_time": "2026-03-07T13:13:40.586161",
+  "steps_executed": [],
+  "extracted_data": {},
+  "screenshots": [],
+  "status": "blocked",
+  "reason": "login",
+  "evidence": "Detected password field",
+  "at_url": "http://127.0.0.1:8080/login",
+  "end_time": "2026-03-07T13:13:41.377113"
+}

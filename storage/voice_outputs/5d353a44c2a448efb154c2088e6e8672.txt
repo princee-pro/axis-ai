@@ -1,0 +1,2 @@
+[MOCK TTS OUTPUT]
+I could not confidently route '[mock transcript from recording]' to a specific safe dashboard command. Live state right now: 3 active goal(s), 3 actionable approval item(s), 7 blocked item(s), and 1 recent result artifact(s). Best next action from the current system state: Approve pending web_automation action (demo_act). You can ask me to summarize approvals, blocked goals, system status, recent changes, results, or create a goal.

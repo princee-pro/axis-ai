@@ -1,0 +1,177 @@
+CREATE TABLE system_settings (key TEXT PRIMARY KEY, value TEXT)
+-------
+CREATE TABLE goal_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, goal_id INTEGER, description TEXT, tags TEXT,
+                    created_at DATETIME, completed_at DATETIME, duration_seconds FLOAT, success BOOLEAN,
+                    retry_count INTEGER, deadline_missed BOOLEAN, decision_context TEXT, risk_at_execution FLOAT,
+                    weights_at_execution TEXT
+                )
+-------
+CREATE TABLE llm_advisory_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp DATETIME, proposal_type TEXT, content TEXT,
+                    suggested_meta_goal TEXT, governance_status TEXT, governance_reason TEXT, tokens_used INTEGER,
+                    cost_usd FLOAT, execution_flag TEXT DEFAULT 'LLM-origin'
+                )
+-------
+CREATE TABLE conversations (
+                    id TEXT PRIMARY KEY, title TEXT, created_at DATETIME, updated_at DATETIME
+                )
+-------
+CREATE TABLE messages (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, conversation_id TEXT, role TEXT, content TEXT,
+                    timestamp DATETIME, actions_json TEXT DEFAULT NULL, routing_json TEXT DEFAULT NULL, FOREIGN KEY(conversation_id) REFERENCES conversations(id)
+                )
+-------
+CREATE TABLE summaries (
+                    conversation_id TEXT PRIMARY KEY, summary_text TEXT, timestamp DATETIME, version INTEGER,
+                    FOREIGN KEY(conversation_id) REFERENCES conversations(id)
+                )
+-------
+CREATE TABLE pending_actions (
+                    id TEXT PRIMARY KEY,
+                    type TEXT,
+                    payload_json TEXT,
+                    status TEXT,
+                    created_at DATETIME,
+                    approved_at DATETIME,
+                    executed_at DATETIME,
+                    created_by TEXT,
+                    notes TEXT
+                , result_ref TEXT)
+-------
+CREATE TABLE devices (
+                    device_id  TEXT PRIMARY KEY,
+                    name       TEXT,
+                    role       TEXT,
+                    token_hash TEXT,
+                    token_salt TEXT,
+                    created_at DATETIME,
+                    last_seen_at DATETIME,
+                    revoked    BOOLEAN DEFAULT 0,
+                    revoked_at DATETIME,
+                    notes      TEXT
+                )
+-------
+CREATE TABLE pairing_codes (
+                    code        TEXT PRIMARY KEY,
+                    role        TEXT,
+                    device_name TEXT,
+                    expires_at  DATETIME,
+                    used        BOOLEAN DEFAULT 0
+                )
+-------
+CREATE TABLE activity_log (
+                    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp    DATETIME,
+                    actor_type   TEXT,
+                    device_id    TEXT,
+                    endpoint     TEXT,
+                    method       TEXT,
+                    status_code  INTEGER,
+                    action_summary TEXT,
+                    error        TEXT,
+                    ip           TEXT,
+                    user_agent   TEXT
+                )
+-------
+CREATE TABLE goals (
+                    id TEXT PRIMARY KEY,
+                    title TEXT,
+                    objective TEXT,
+                    status TEXT,
+                    priority TEXT,
+                    created_at DATETIME,
+                    updated_at DATETIME,
+                    last_error TEXT,
+                    requires_approval BOOLEAN DEFAULT 0,
+                    current_step_index INTEGER DEFAULT 0,
+                    summary TEXT
+                )
+-------
+CREATE TABLE goal_plans (
+                    id TEXT PRIMARY KEY,
+                    goal_id TEXT,
+                    status TEXT,
+                    risk_summary TEXT,
+                    created_by TEXT,
+                    created_at DATETIME,
+                    planner_type TEXT,
+                    planner_provider TEXT,
+                    planner_warnings TEXT,
+                    raw_plan_hash TEXT,
+                    FOREIGN KEY(goal_id) REFERENCES goals(id)
+                )
+-------
+CREATE TABLE goal_plan_steps (
+                    id TEXT PRIMARY KEY,
+                    goal_id TEXT,
+                    plan_id TEXT,
+                    step_index INTEGER,
+                    title TEXT,
+                    description TEXT,
+                    capability_type TEXT,
+                    status TEXT,
+                    requires_approval BOOLEAN DEFAULT 0,
+                    action_ref TEXT,
+                    result_ref TEXT,
+                    result_json TEXT,
+                    error TEXT,
+                    last_transition_at DATETIME,
+                    last_transition_reason TEXT,
+                    FOREIGN KEY(goal_id) REFERENCES goals(id),
+                    FOREIGN KEY(plan_id) REFERENCES goal_plans(id)
+                )
+-------
+CREATE TABLE goal_events (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    goal_id TEXT,
+                    plan_id TEXT,
+                    step_id TEXT,
+                    event_type TEXT,
+                    from_status TEXT,
+                    to_status TEXT,
+                    reason TEXT,
+                    action_ref TEXT,
+                    result_ref TEXT,
+                    created_at DATETIME,
+                    FOREIGN KEY(goal_id) REFERENCES goals(id)
+                )
+-------
+CREATE TABLE permission_requests (
+                    id TEXT PRIMARY KEY,
+                    permission_key TEXT,
+                    title TEXT,
+                    reason TEXT,
+                    goal_id TEXT,
+                    goal_title TEXT,
+                    action_label TEXT,
+                    source TEXT,
+                    requested_by TEXT,
+                    requested_state TEXT,
+                    status TEXT,
+                    context_json TEXT,
+                    created_at DATETIME,
+                    resolved_at DATETIME,
+                    resolution_note TEXT
+                )
+-------
+CREATE TABLE long_term_memory (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    text TEXT NOT NULL,
+                    tags TEXT,
+                    source TEXT,
+                    importance TEXT,
+                    created_at DATETIME
+                )
+-------
+CREATE TABLE reminders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                datetime TEXT NOT NULL,
+                goal_id INTEGER,
+                recurring BOOLEAN DEFAULT 0,
+                interval_days INTEGER DEFAULT 0,
+                triggered BOOLEAN DEFAULT 0,
+                created_at TEXT NOT NULL
+            )
+-------

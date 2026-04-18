@@ -1,0 +1,5 @@
+[MOCK TTS OUTPUT]
+You have 3 actionable approval item(s): 3 still pending review and 0 already approved, ready to execute.
+- Unlinked item: web_automation is pending review.
+- Untitled Goal: web.plan.execute is pending review.
+- Untitled Goal: web.plan.execute is pending review.

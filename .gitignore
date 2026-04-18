@@ -1,0 +1,51 @@
+# Environment variables - NEVER commit
+.env
+.env.local
+.env.production
+*.env
+
+# Google auth tokens
+storage/google_token.json
+storage/google_credentials.json
+credentials.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.Python
+venv/
+env/
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+
+# Database files
+*.db
+*.db.bak
+*.sqlite
+*.sqlite3
+jarvis_memory.db*
+storage/*.db
+storage/*.bak
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Demo videos (large files)
+demo/*.webm
+demo/*.mp4

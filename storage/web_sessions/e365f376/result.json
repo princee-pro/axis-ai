@@ -1,0 +1,14 @@
+{
+  "session_id": "e365f376",
+  "start_time": "2026-03-07T13:13:43.141834",
+  "steps_executed": [
+    {
+      "action": "goto",
+      "url": "http://127.0.0.1:8080"
+    }
+  ],
+  "extracted_data": {},
+  "screenshots": [],
+  "status": "success",
+  "end_time": "2026-03-07T13:13:43.898932"
+}

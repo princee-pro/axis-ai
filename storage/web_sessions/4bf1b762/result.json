@@ -1,0 +1,33 @@
+{
+  "session_id": "4bf1b762",
+  "start_time": "2026-02-25T21:28:03.126040",
+  "steps_executed": [
+    {
+      "action": "goto",
+      "url": "http://127.0.0.1:8080"
+    },
+    {
+      "action": "extract",
+      "selector": "#title",
+      "name": "page_title"
+    },
+    {
+      "action": "extract",
+      "selector": ".price",
+      "name": "product_price"
+    },
+    {
+      "action": "screenshot",
+      "name": "test_page"
+    }
+  ],
+  "extracted_data": {
+    "page_title": "Hello Jarvis",
+    "product_price": "$99.99"
+  },
+  "screenshots": [
+    "storage\\web_sessions\\4bf1b762\\test_page.png"
+  ],
+  "status": "success",
+  "end_time": "2026-02-25T21:28:08.690670"
+}

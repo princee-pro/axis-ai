@@ -1,0 +1,3 @@
+[MOCK TTS OUTPUT]
+Book Executive Travel is blocked because: Execution blocked: Passport info missing.
+Recommended next move: Review and resume or cancel goal
