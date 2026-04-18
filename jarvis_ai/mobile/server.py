@@ -2102,21 +2102,20 @@ class JarvisServer:
         require_https_proto  = cfg.get('require_https_forwarded_proto', True)
         trusted_proxy_ips    = cfg.get('trusted_proxy_ips', []) or []
 
-        # ── Startup security enforcement ────────────────────────────────────────
-        # Allow ENV override: if SERVER_HOST is explicitly set to 0.0.0.0 (e.g. Render),
-        # skip the local-only binding restriction so the server can reach the internet.
-        env_host_override = os.environ.get('SERVER_HOST', '')
-        if not remote_enabled and env_host_override != '0.0.0.0':
+        # ── Startup security enforcement ──────────────────────────────────────────
+        # If host is explicitly passed as 0.0.0.0 (e.g. via SERVER_HOST env on Render),
+        # skip the local-only restriction so the server can bind to all interfaces.
+        if not remote_enabled and host != '0.0.0.0':
             # Force local-only binding regardless of configured host
             host = '127.0.0.1'
-        elif remote_enabled and not behind_proxy and env_host_override != '0.0.0.0':
-            raise RuntimeError(
-                "[JARVIS] STARTUP REFUSED: server.remote_enabled=true but "
-                "server.behind_reverse_proxy=false. Jarvis will NOT bind to a "
-                "public interface without a TLS-terminating reverse proxy. "
-                "Set behind_reverse_proxy: true and configure Caddy/Nginx/Cloudflare Tunnel."
-            )
         elif remote_enabled:
+            if not behind_proxy and host != '0.0.0.0':
+                raise RuntimeError(
+                    "[JARVIS] STARTUP REFUSED: server.remote_enabled=true but "
+                    "server.behind_reverse_proxy=false. Jarvis will NOT bind to a "
+                    "public interface without a TLS-terminating reverse proxy. "
+                    "Set behind_reverse_proxy: true and configure Caddy/Nginx/Cloudflare Tunnel."
+                )
             print("!" * 70)
             print("[JARVIS] REMOTE ACCESS ENABLED — ensure TLS reverse proxy is active.")
             print("[JARVIS] Jarvis does NOT implement native TLS. Use Caddy or Cloudflare Tunnel.")
